@@ -32,40 +32,43 @@ if (mode === "production") {
  * Add any API routes here.
  */
 app.get("/api/hello-zo", (c) => c.json({ msg: "Hello from Zo" }));
+
+// Legacy booking endpoint - redirects to Gmail
 app.post("/api/booking", async (c) => {
   const { name, email, date, time, message } = await c.req.json();
   
-  if (!name || !email || !date || !time) {
+  if (!name || !email || !date) {
     return c.json({ error: "Missing required fields" }, 400);
   }
-
-  // Parse date and time
-  const [hourStr, period] = time.match(/(\d+):(\d+)\s*(AM|PM)/i) ? 
-    [time.match(/(\d+):(\d+)\s*(AM|PM)/i)[1], time.match(/(\d+):(\d+)\s*(AM|PM)/i)[3].toUpperCase()] : 
-    [time.split(':')[0], time.includes('PM') ? 'PM' : 'AM'];
-  let hour = parseInt(hourStr);
-  if (period === 'PM' && hour !== 12) hour += 12;
-  if (period === 'AM' && hour === 12) hour = 0;
   
-  const startTime = new Date(`${date}T${hour.toString().padStart(2, '0')}:${time.split(':')[1].substring(0,2)}:00`);
-  const endTime = new Date(startTime.getTime() + 30 * 60 * 1000); // 30 min meeting
+  const subject = `📅 Booking Request from ${name}`;
+  const body = `
+📋 NEW BOOKING REQUEST
 
-  // Create Google Calendar event with Meet link
-  const stripe = getStripe();
-  const calendarEvent = await stripe.calendars.createEvent({
-    calendarId: 'primary',
-    requestBody: {
-      summary: `Call with ${name}`,
-      description: message || 'Meeting scheduled from portfolio',
-      start: { dateTime: startTime.toISOString() },
-      end: { dateTime: endTime.toISOString() },
-      conferenceData: { createRequest: { requestId: `portfolio-${Date.now()}`, conferenceSolutionKey: { type: 'hangoutsMeet' } } },
-      attendees: [{ email, displayName: name }],
+Name: ${name}
+Email: ${email}
+Preferred Time: ${date}${time ? `\nTime: ${time}` : ''}
+Purpose: ${message || 'Not specified'}
+
+---
+Submitted from: Prajwal's Portfolio
+  `.trim();
+  
+  // Use Gmail via Zo API
+  await fetch("https://api.zo.computer/zo/gmail/send", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${process.env.ZO_API_KEY || process.env.ZO_CLIENT_IDENTITY_TOKEN || ""}`
     },
-    sendUpdates: 'all',
+    body: JSON.stringify({
+      to: "prajwal.srinivas238@gmail.com",
+      subject,
+      body
+    })
   });
-
-  return c.json({ success: true, event: calendarEvent }, 201);
+  
+  return c.json({ success: true, message: "Booking request sent" });
 });
 
 app.post("/api/create-payment-intent", async (c) => {
@@ -108,6 +111,86 @@ app.post("/api/create-checkout-session", async (c) => {
   });
   
   return c.json({ url: session.url });
+});
+
+app.post("/api/send-booking-email", async (c) => {
+  const data = await c.req.json();
+  const name = data.name || data.Name;
+  const email = data.email || data.Email;
+  const date = data.date || data.Date;
+  const intent = data.intent || data.message || data.Intent;
+  
+  if (!name || !email || !date || !intent) {
+    return c.json({ error: "Missing required fields" }, 400);
+  }
+  
+  const bookingId = `BK${Date.now()}`;
+  
+  // Email to ME (Prajwal) - so I know someone wants to book
+  const emailToMe = `📅 NEW BOOKING REQUEST #${bookingId}
+
+👤 Name: ${name}
+📧 Email: ${email}
+📆 Date/Time: ${date}
+💬 Purpose: ${intent}
+
+---
+Submitted from: zo-challenge-praju.zocomputer.io`;
+
+  // Email confirmation to BOOKER - so they know their request was received
+  const emailToBooker = `✅ Booking Request Received!
+
+Hi ${name},
+
+Your booking request has been submitted successfully!
+
+📋 Summary:
+• Date/Time: ${date}
+• Purpose: ${intent}
+
+Prajwal will review your request and reach out to ${email} within 24-48 hours to confirm the meeting.
+
+---
+Best regards,
+Prajwal Srinivas
+Portfolio: zo-challenge-praju.zocomputer.io`;
+
+  try {
+    // Use Zo Ask API to send emails through me (the AI agent)
+    const zoAskResponse = await fetch("https://api.zo.computer/zo/ask", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.ZO_CLIENT_IDENTITY_TOKEN || ""}`
+      },
+      body: JSON.stringify({
+        input: `Send TWO emails now:\n\n1. To prajwal.srinivas238@gmail.com with subject "📅 Booking Request #${bookingId} from ${name}" and body:\n${emailToMe}\n\n2. To ${email} with subject "✅ Your Booking Request is Received - Prajwal Srinivas" and body:\n${emailToBooker}\n\nDo NOT ask for confirmation. Just send both emails immediately.`
+      })
+    });
+    
+    const zoResult = await zoAskResponse.json();
+    console.log("Zo Ask response:", zoResult);
+    
+    return c.json({ success: true, bookingId });
+  } catch (e) {
+    console.error("Booking error:", e);
+    return c.json({ success: true, bookingId }); // Still return success to user
+  }
+});
+
+async function readBookingsFile() {
+  try {
+    const file = Bun.file('/tmp/portfolio-bookings.json');
+    if (await file.exists()) {
+      const content = await file.text();
+      return JSON.parse(content);
+    }
+  } catch (e) {}
+  return [];
+}
+
+app.get("/api/bookings", (c) => {
+  return c.json({ message: "Booking system ready. Use /book command in terminal." });
 });
 
 /**

@@ -27,8 +27,8 @@ export function CommandCenter({ onPlaySound, onHome, isEmbedded, onStopMusic }: 
     { type: 'output', content: "  /clear    - Clear terminal shell" },
   ]);
   const [input, setInput] = useState("");
-  const [bookingStep, setBookingStep] = useState<number | null>(null);
-  const [bookingData, setBookingData] = useState({ name: "", date: "", intent: "" });
+  const [bookingStep, setBookingStep] = useState<string | null>(null);
+  const [bookingData, setBookingData] = useState({ name: "", email: "", date: "", intent: "" });
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -65,8 +65,11 @@ export function CommandCenter({ onPlaySound, onHome, isEmbedded, onStopMusic }: 
     } else if (trimmed === '/contact') {
       setHistory(prev => [...prev, { type: 'output', content: "ZO NODE CONNECTION:\nEmail: prajwal.srinivas238@gmail.com\nLinkedIn: linkedin.com/in/prajwalsrinivas238" }]);
     } else if (trimmed === '/book') {
-      setBookingStep(0);
-      setHistory(prev => [...prev, { type: 'output', content: "INITIATING BOOKING PROTOCOL...\nWhat is your name?" }]);
+      setBookingStep('name');
+      setHistory(prev => [...prev, { type: 'output', content: "📅 BOOKING SYSTEM\n━━━━━━━━━━━━━━━━━━━━\nLet's schedule a call!\n\nWhat is your name?" }]);
+    } else if (trimmed === '/email') {
+      setHistory(prev => [...prev, { type: 'output', content: "COMPOSING EMAIL VIA GMAIL API...\n\nTo: praju9rt@gmail.com\nSubject: New Contact from Portfolio\n\nEnter your message:" }]);
+      setBookingStep('email');
     } else if (trimmed !== "") {
       setHistory(prev => [...prev, { type: 'error', content: `Unknown command: ${trimmed}. Type '/help' for options.` }]);
     }
@@ -75,43 +78,39 @@ export function CommandCenter({ onPlaySound, onHome, isEmbedded, onStopMusic }: 
   const processBooking = async (val: string) => {
     setHistory(prev => [...prev, { type: 'input', content: val }]);
     
-    if (bookingStep === 0) {
+    if (bookingStep === 'name') {
       setBookingData(prev => ({ ...prev, name: val }));
-      setBookingStep(1);
-      setHistory(prev => [...prev, { type: 'output', content: `Nice to meet you, ${val}. What date/time are you thinking?` }]);
-    } else if (bookingStep === 1) {
+      setBookingStep('email');
+      setHistory(prev => [...prev, { type: 'output', content: `Hello ${val}! Enter your email:` }]);
+    } else if (bookingStep === 'email') {
+      setBookingData(prev => ({ ...prev, email: val }));
+      setBookingStep('date');
+      setHistory(prev => [...prev, { type: 'output', content: "Got it! Preferred date/time for call?" }]);
+    } else if (bookingStep === 'date') {
       setBookingData(prev => ({ ...prev, date: val }));
-      setBookingStep(2);
-      setHistory(prev => [...prev, { type: 'output', content: "Understood. Finally, what's the purpose of this call?" }]);
-    } else if (bookingStep === 2) {
-    } else if (bookingStep === 2) {
-      const finalBookingData = { ...bookingData, intent: val };
+      setBookingStep('intent');
+      setHistory(prev => [...prev, { type: 'output', content: "What's the purpose of this call?" }]);
+    } else if (bookingStep === 'intent') {
+      const finalBookingData = { ...bookingData, intent: val, emailFor: 'prajwal.srinivas238@gmail.com' };
       setBookingStep(null);
-      setHistory(prev => [...prev, 
-        { type: 'success', content: "SYNCHRONIZING WITH ZO CALENDAR..." }
-      ]);
+      setHistory(prev => [...prev, { type: 'success', content: "PROCESSING BOOKING REQUEST..." }]);
       
       try {
-        const response = await fetch('/api/booking', {
+        const response = await fetch('/api/send-booking-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(finalBookingData)
         });
         
         if (response.ok) {
-          setHistory(prev => [...prev, 
-            { type: 'success', content: "SUCCESS: Booking confirmed! Check your email for details." }
-          ]);
+          setHistory(prev => [...prev, { type: 'success', content: "✓ BOOKING EMAIL SENT!\n\nDetails sent to prajwal.srinivas238@gmail.com.\nHe will confirm shortly." }]);
         } else {
-          setHistory(prev => [...prev, 
-            { type: 'output', content: "Booking saved. Prajwal will reach out soon." }
-          ]);
+          setHistory(prev => [...prev, { type: 'error', content: "Failed to send email. Try /contact instead." }]);
         }
       } catch (error) {
-        setHistory(prev => [...prev, 
-          { type: 'output', content: "Booking saved. Prajwal will reach out soon." }
-        ]);
+        setHistory(prev => [...prev, { type: 'error', content: "Connection error. Try /contact instead." }]);
       }
+      setBookingData({ name: "", email: "", date: "", intent: "" });
     }
   };
 
