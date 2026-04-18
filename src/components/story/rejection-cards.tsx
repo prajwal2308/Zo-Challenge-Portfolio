@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { motion } from "framer-motion";
 import { Mail } from "lucide-react";
-import { useAudioTick } from "@/hooks/use-audio-tick";
 
 const REJECTIONS = [
   // Wave 1
@@ -9,9 +8,9 @@ const REJECTIONS = [
   { text: "Due to the high volume of applications, we cannot offer individual feedback.", delay: 0.6, x: "35vw", y: "25vh", rotation: 3 },
   // Wave 2
   { text: "Please note: We strictly do not offer visa sponsorship for this role.", delay: 1.0, x: "-38vw", y: "30vh", rotation: -4 },
-  { text: "While your background is very impressive, we need someone with 3+ years of experience.", delay: 1.3, x: "25vw", y: "-35vh", rotation: 5 },
+  { text: "While your background is very impressive, we need someone with more years of experience.", delay: 1.3, x: "25vw", y: "-35vh", rotation: 5 },
   // Wave 3
-  { text: "Your application for Software Engineer (New Grad) has been declined.", delay: 1.6, x: "-20vw", y: "40vh", rotation: -1 },
+  { text: "Your application for Software Engineer (New Grad) has been rejected.", delay: 1.6, x: "-20vw", y: "40vh", rotation: -1 },
   { text: "After careful review of your qualifications, we will not be proceeding.", delay: 1.8, x: "38vw", y: "-10vh", rotation: 4 },
   // Wave 4
   { text: "Requirement: Must be a US Citizen or Permanent Resident.", delay: 2.1, x: "-5vw", y: "-42vh", rotation: -3 },
@@ -37,12 +36,6 @@ const REJECTIONS = [
 ];
 
 export function RejectionCards() {
-  const { playSmoothNotif, playStampSlam } = useAudioTick();
-
-  useEffect(() => {
-    // Audio triggers removed per user request to focus on background atmosphere
-  }, [playSmoothNotif, playStampSlam]);
-
   return (
     <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none overflow-hidden">
       {REJECTIONS.map((msg, i) => {
@@ -52,7 +45,6 @@ export function RejectionCards() {
                key={i}
                initial={{ opacity: 0, scale: 6, rotateZ: msg.rotation - 25 }}
                animate={{ opacity: 1, scale: 1, rotateZ: msg.rotation }}
-               // Custom bezier easing pushes past 1.0 into a rigid physical bounce
                transition={{ delay: msg.delay, duration: 0.25, ease: [0.17, 1.15, 0.25, 1] }}
                className="absolute z-50 pointer-events-none will-change-transform"
                style={{ x: msg.x, y: msg.y }}
@@ -65,7 +57,6 @@ export function RejectionCards() {
                     />
                 </div>
 
-                {/* Delayed post-processing bloom effect prevents GPU lag during the slam */}
                 <motion.div 
                    initial={{ opacity: 0 }}
                    animate={{ opacity: 1 }}

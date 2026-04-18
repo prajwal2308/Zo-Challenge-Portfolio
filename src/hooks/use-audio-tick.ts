@@ -209,10 +209,7 @@ export function useAudioTick() {
         
         const musicSource = ctx.createBufferSource();
         musicSource.buffer = musicBufferRef.current;
-        musicSource.loop = false;
-        musicSource.onended = () => {
-          stopSadMusic();
-        };
+        musicSource.loop = true;  // Changed from false to true for continuous loop
         
         const musicGain = ctx.createGain();
         musicGain.gain.value = 0.15; // Slow volume

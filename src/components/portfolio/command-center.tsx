@@ -17,7 +17,13 @@ export function CommandCenter({ onPlaySound, onHome, isEmbedded }: CommandCenter
   const [history, setHistory] = useState<HistoryItem[]>([
     { type: 'output', content: "ZO CLOUD OS [Version 1.0.42]" },
     { type: 'output', content: "Connection established with Cloud Node..." },
-    { type: 'output', content: "Type '/help' to see available commands." },
+    { type: 'output', content: "" },
+    { type: 'output', content: "Available commands:" },
+    { type: 'output', content: "  /home     - Reveal Portfolio" },
+    { type: 'output', content: "  /book     - Initiate booking flow" },
+    { type: 'output', content: "  /projects - Browse top work" },
+    { type: 'output', content: "  /contact  - Get social links" },
+    { type: 'output', content: "  /clear    - Clear terminal shell" },
   ]);
   const [input, setInput] = useState("");
   const [bookingStep, setBookingStep] = useState<number | null>(null);

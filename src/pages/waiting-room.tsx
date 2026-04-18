@@ -1,31 +1,45 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { TextScramble } from "@/components/ui/text-scramble";
-import { FastForward } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { RejectionCards } from "@/components/story/rejection-cards";
 import { useAudioTick } from "@/hooks/use-audio-tick";
 import { OPTTimer } from "@/components/story/opt-timer";
+import { LoanCounter } from "@/components/story/loan-counter";
 import { CommandCenter } from "@/components/portfolio/command-center";
 import { MainPortfolio } from "@/components/portfolio/main-portfolio";
+import { SurvivalDashboard } from "@/components/story/survival-dashboard";
+import { Breakthrough } from "@/components/story/breakthrough";
+import { FinalWaitingRoom } from "@/components/story/final-waiting-room";
+
+type Stage = 'initial' | 'waiting' | 'countdown' | 'zooming' | 'loan' | 'rejections' | 'home' | 'survival' | 'breakthrough' | 'final-waiting';
+
+const STAGE_ORDER: Stage[] = ['initial', 'waiting', 'countdown', 'zooming', 'rejections', 'loan', 'survival', 'breakthrough', 'final-waiting', 'home'];
 
 export default function WaitingRoomPage() {
-  const [stage, setStage] = useState<'initial' | 'waiting' | 'countdown' | 'zooming' | 'rejections' | 'home'>('initial');
+  const [stage, setStage] = useState<Stage>('initial');
   const [isRevealed, setIsRevealed] = useState(false);
   const { playTick, playRapid, startSadMusic, stopSadMusic } = useAudioTick();
+
+  const getNextStage = (current: Stage): Stage | null => {
+    const idx = STAGE_ORDER.indexOf(current);
+    if (idx === -1 || idx >= STAGE_ORDER.length - 1) return null;
+    return STAGE_ORDER[idx + 1];
+  };
+
+  const goToNextStage = () => {
+    const next = getNextStage(stage);
+    if (next) {
+      playTick();
+      if (next === 'waiting') startSadMusic();
+      setStage(next);
+    }
+  };
 
   const skipToHome = () => {
     stopSadMusic();
     setStage('home');
   };
-
-  useEffect(() => {
-    if (stage === 'waiting') {
-      startSadMusic();
-    }
-    if (stage === 'home') {
-      // Music now stops automatically when the track ends via onended listener in useAudioTick
-    }
-  }, [stage, startSadMusic, stopSadMusic]);
 
   useEffect(() => {
     if (stage === 'waiting') {
@@ -41,23 +55,77 @@ export default function WaitingRoomPage() {
       return () => clearTimeout(timer);
     }
     if (stage === 'rejections') {
-      const timer = setTimeout(() => setStage('home'), 7500);
+      const timer = setTimeout(() => setStage('loan'), 7500);
+      return () => clearTimeout(timer);
+    }
+    if (stage === 'loan') {
+      const timer = setTimeout(() => setStage('survival'), 8000);
+      return () => clearTimeout(timer);
+    }
+    if (stage === 'survival') {
+      const timer = setTimeout(() => setStage('breakthrough'), 10000);
+      return () => clearTimeout(timer);
+    }
+    if (stage === 'final-waiting') {
+      const timer = setTimeout(() => setStage('home'), 5000);
       return () => clearTimeout(timer);
     }
   }, [stage, playTick]);
 
+  const showNextButton = stage !== 'initial' && stage !== 'home' && stage !== 'breakthrough' && stage !== 'final-waiting';
+
   return (
     <div
-      className="relative flex h-screen w-full items-center justify-center bg-black overflow-hidden cursor-pointer"
-      onClick={() => {
-        if (stage === 'initial') {
-          playTick();
-          setStage('waiting');
-        }
-      }}
+      className="relative flex h-screen w-full items-center justify-center bg-black overflow-hidden"
     >
+      {/* Disclaimer on initial page */}
       <AnimatePresence>
-        {stage !== 'initial' && stage !== 'home' && (
+        {stage === 'initial' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.5 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-gradient-to-tr from-zinc-900 to-black mix-blend-screen"
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Initial page content */}
+      <AnimatePresence>
+        {stage === 'initial' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="z-10 flex flex-col items-center gap-6 cursor-pointer"
+            onClick={() => {
+              playTick();
+              startSadMusic();
+              setStage('waiting');
+            }}
+          >
+            <motion.div
+              className="text-zinc-500 font-mono text-[10px] tracking-[0.3em] uppercase animate-pulse select-none"
+            >
+              Click to enter
+            </motion.div>
+            
+            {/* Disclaimer */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+              className="text-zinc-600 font-mono text-[9px] md:text-[10px] tracking-wider text-center max-w-md px-6 leading-relaxed"
+            >
+              This is an interactive storytelling experience depicting the journey of international students in the US job market. All scenarios are based on real experiences.
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Next Page Button */}
+      <AnimatePresence>
+        {showNextButton && (
           <motion.button
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -66,12 +134,12 @@ export default function WaitingRoomPage() {
             whileTap={{ scale: 0.95 }}
             onClick={(e) => {
               e.stopPropagation();
-              skipToHome();
+              goToNextStage();
             }}
-            className="absolute bottom-12 z-[100] flex items-center gap-2 px-6 py-3 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-white/40 font-mono text-xs tracking-widest uppercase transition-colors"
+            className="absolute bottom-12 right-12 z-[100] flex items-center gap-2 px-6 py-3 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-white/60 font-mono text-xs tracking-widest uppercase transition-colors hover:text-white/80"
           >
-            <FastForward className="w-4 h-4" />
-            Fast Forward
+            Next Page
+            <ChevronRight className="w-4 h-4" />
           </motion.button>
         )}
       </AnimatePresence>
@@ -79,28 +147,6 @@ export default function WaitingRoomPage() {
       <AnimatePresence mode="wait">
         {!isRevealed ? (
           <motion.div key="splash" className="contents">
-            <AnimatePresence>
-              {stage === 'initial' && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 0.5 }}
-                  exit={{ opacity: 0 }}
-                  className="absolute inset-0 bg-gradient-to-tr from-zinc-900 to-black mix-blend-screen"
-                />
-              )}
-            </AnimatePresence>
-
-            <AnimatePresence>
-              {stage === 'initial' && (
-                <motion.div
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  className="z-10 text-zinc-500 font-mono text-[10px] tracking-[0.3em] uppercase animate-pulse select-none"
-                >
-                  Click to enter
-                </motion.div>
-              )}
-            </AnimatePresence>
-
             <AnimatePresence>
               {(stage === 'waiting' || stage === 'countdown' || stage === 'zooming') && (
                 <motion.div
@@ -139,11 +185,20 @@ export default function WaitingRoomPage() {
                       transition={stage === 'zooming' ? { duration: 1.5, times: [0, 0.8, 1], ease: "easeIn" } : { duration: 0.3 }}
                     >
                       {stage === 'countdown' || stage === 'zooming' ? (
-                        <div
-                          className="text-[5.5rem] md:text-[9rem] lg:text-[13rem] font-black uppercase inline-block"
-                          style={{ color: "#dc2626" }}
-                        >
-                          <OPTTimer />
+                        <div className="flex flex-col items-center">
+                          <motion.div
+                            initial={{ opacity: 0, y: -20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="text-red-500/60 font-mono text-xs uppercase tracking-[0.4em] mb-4"
+                          >
+                            OPT CLOCK
+                          </motion.div>
+                          <div
+                            className="text-[5.5rem] md:text-[9rem] lg:text-[13rem] font-black uppercase inline-block"
+                            style={{ color: "#dc2626" }}
+                          >
+                            <OPTTimer />
+                          </div>
                         </div>
                       ) : (
                         <TextScramble
@@ -178,6 +233,30 @@ export default function WaitingRoomPage() {
                     </motion.div>
                   </div>
                 </motion.div>
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {stage === 'loan' && (
+                <LoanCounter />
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {stage === 'survival' && (
+                <SurvivalDashboard />
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {stage === 'breakthrough' && (
+                <Breakthrough onComplete={() => setStage('final-waiting')} />
+              )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {stage === 'final-waiting' && (
+                <FinalWaitingRoom playRapid={playRapid} />
               )}
             </AnimatePresence>
 

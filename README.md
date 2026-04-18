@@ -2,7 +2,29 @@ This file provides guidance when working with code in this repository. The READM
 
 # Project Notes
 
-<!-- Documentation for this specific project goes here. This will include both an articulation of what this project aims to accomplish as well as technical details about how it works. This means explaining the purpose of the project as a whole along with an overview of the design choices. -->
+## Waiting Room - Interactive Portfolio Experience
+
+This is an interactive portfolio experience that tells the story of an international student's job search journey. The experience includes:
+
+1. **Initial Stage**: "Click to Enter" prompt on a dark background
+2. **Waiting Stage**: "THE WAITING ROOM" text with scramble animation and ambient sad music
+3. **Countdown Stage**: OPT (Optional Practical Training) countdown timer showing the anxiety of visa deadlines
+4. **Rejection Stage**: Animated rejection emails flying across the screen
+5. **Portfolio Stage**: Interactive terminal-based portfolio with command center
+
+### Key Features
+- **Framer Motion animations**: Smooth transitions and staggered animations
+- **Web Audio API**: Synthesized sounds for typing, ticks, and ambient music
+- **Text Scramble Effect**: Matrix-style text reveal animations
+- **Interactive Terminal**: Command-line interface for portfolio navigation
+
+### Commands in Terminal
+- `/help` - Show available commands
+- `/home` - Reveal portfolio
+- `/projects` - Browse top work
+- `/contact` - Get social links
+- `/book` - Initiate booking flow
+- `/clear` - Clear terminal
 
 ---
 
