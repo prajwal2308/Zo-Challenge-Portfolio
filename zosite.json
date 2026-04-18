@@ -1,0 +1,15 @@
+{
+  "name": "zo-challenge",
+  "local_port": 57369,
+  "entrypoint": "bun run dev",
+  "publish": {
+    "label": "zo-challenge",
+    "type": "http",
+    "entrypoint": "bun run prod",
+    "published_port": 56228,
+    "env": {
+      "NODE_ENV": "production",
+      "ZO_CLIENT_IDENTITY_TOKEN": "none"
+    }
+  }
+}
