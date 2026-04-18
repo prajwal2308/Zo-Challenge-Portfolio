@@ -72,7 +72,7 @@ export default function WaitingRoomPage() {
   const showNextButton = stage !== 'initial' && stage !== 'home' && stage !== 'breakthrough' && stage !== 'final-waiting';
 
   return (
-    <div className="relative flex h-screen w-full items-center justify-center bg-black overflow-hidden">
+    <div className="relative w-full h-full svh">
       {/* Skip to Portfolio - Top Right on initial page */}
       <AnimatePresence>
         {stage === 'initial' && (
