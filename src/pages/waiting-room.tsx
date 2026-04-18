@@ -105,6 +105,21 @@ export default function WaitingRoomPage() {
             <motion.div className="text-zinc-600 font-mono text-[9px] md:text-[10px] tracking-wider text-center max-w-md px-6 leading-relaxed">
               This is an interactive storytelling experience depicting the journey of international students in the US job market. All scenarios are based on real experiences.
             </motion.div>
+            {/* Skip to Portfolio */}
+            <motion.button
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1, duration: 0.5 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                stopSadMusic();
+                setStage('home');
+                setIsRevealed(true);
+              }}
+              className="mt-4 px-6 py-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 font-mono text-[10px] uppercase tracking-wider hover:bg-emerald-500/20 transition-colors"
+            >
+              Skip to Portfolio →
+            </motion.button>
           </motion.div>
         )}
       </AnimatePresence>
