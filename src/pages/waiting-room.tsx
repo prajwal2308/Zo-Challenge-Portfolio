@@ -73,31 +73,39 @@ export default function WaitingRoomPage() {
 
   return (
     <div className="relative flex h-screen w-full items-center justify-center bg-black overflow-hidden">
-      {/* Disclaimer on initial page */}
+      {/* Skip to Portfolio - Top Right on initial page */}
       <AnimatePresence>
         {stage === 'initial' && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.5 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-gradient-to-tr from-zinc-900 to-black mix-blend-screen"
-          />
+          <motion.button
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              stopSadMusic();
+              setStage('home');
+              setIsRevealed(true);
+            }}
+            className="absolute top-6 right-6 z-[110] px-4 py-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 backdrop-blur-md text-emerald-400 font-mono text-xs uppercase tracking-wider hover:bg-emerald-500/20 transition-colors"
+          >
+            Skip to Portfolio →
+          </motion.button>
         )}
       </AnimatePresence>
 
-      {/* Initial page content */}
+      {/* Click to enter area - only on initial stage, centered */}
       <AnimatePresence>
         {stage === 'initial' && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="z-10 flex flex-col items-center gap-6 cursor-pointer"
             onClick={() => {
               playTick();
               startSadMusic();
               setStage('waiting');
             }}
+            className="z-10 flex flex-col items-center gap-6 cursor-pointer"
           >
             <motion.div className="text-zinc-500 font-mono text-[10px] tracking-[0.3em] uppercase animate-pulse select-none">
               Click to enter
@@ -105,26 +113,11 @@ export default function WaitingRoomPage() {
             <motion.div className="text-zinc-600 font-mono text-[9px] md:text-[10px] tracking-wider text-center max-w-md px-6 leading-relaxed">
               This is an interactive storytelling experience depicting the journey of international students in the US job market. All scenarios are based on real experiences.
             </motion.div>
-            {/* Skip to Portfolio */}
-            <motion.button
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1, duration: 0.5 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                stopSadMusic();
-                setStage('home');
-                setIsRevealed(true);
-              }}
-              className="mt-4 px-6 py-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 font-mono text-[10px] uppercase tracking-wider hover:bg-emerald-500/20 transition-colors"
-            >
-              Skip to Portfolio →
-            </motion.button>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Bottom Next Button - Only on mobile, bottom right */}
+      {/* Bottom Next Button - mobile */}
       <AnimatePresence>
         {showNextButton && (
           <motion.button
@@ -246,8 +239,8 @@ export default function WaitingRoomPage() {
                   transition={{ duration: 2, ease: "easeOut" }}
                   className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black"
                 >
-                  {/* Top Navigation: Home + Game buttons - move down a bit */}
-                  <div className="absolute top-6 left-0 right-0 z-[110] flex items-center justify-center gap-4 px-4 md:top-8">
+                  {/* Top Navigation: Home + Game buttons */}
+                  <div className="absolute top-6 left-0 right-0 z-[110] flex items-center justify-center gap-4 px-4">
                     <button
                       onClick={(e) => { e.stopPropagation(); stopSadMusic(); setStage('initial'); setIsRevealed(false); }}
                       className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-white/60 font-mono text-xs uppercase tracking-wider transition-colors hover:text-white/80 hover:bg-white/10"
