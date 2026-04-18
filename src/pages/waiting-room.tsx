@@ -38,11 +38,6 @@ export default function WaitingRoomPage() {
     }
   };
 
-  const skipToHome = () => {
-    stopSadMusic();
-    setStage('home');
-  };
-
   useEffect(() => {
     if (stage === 'waiting') {
       const timer = setTimeout(() => setStage('countdown'), 3500);
@@ -77,9 +72,7 @@ export default function WaitingRoomPage() {
   const showNextButton = stage !== 'initial' && stage !== 'home' && stage !== 'breakthrough' && stage !== 'final-waiting';
 
   return (
-    <div
-      className="relative flex h-screen w-full items-center justify-center bg-black overflow-hidden"
-    >
+    <div className="relative flex h-screen w-full items-center justify-center bg-black overflow-hidden">
       {/* Disclaimer on initial page */}
       <AnimatePresence>
         {stage === 'initial' && (
@@ -106,78 +99,44 @@ export default function WaitingRoomPage() {
               setStage('waiting');
             }}
           >
-            <motion.div
-              className="text-zinc-500 font-mono text-[10px] tracking-[0.3em] uppercase animate-pulse select-none"
-            >
+            <motion.div className="text-zinc-500 font-mono text-[10px] tracking-[0.3em] uppercase animate-pulse select-none">
               Click to enter
             </motion.div>
-            
-            {/* Disclaimer */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.8 }}
-              className="text-zinc-600 font-mono text-[9px] md:text-[10px] tracking-wider text-center max-w-md px-6 leading-relaxed"
-            >
+            <motion.div className="text-zinc-600 font-mono text-[9px] md:text-[10px] tracking-wider text-center max-w-md px-6 leading-relaxed">
               This is an interactive storytelling experience depicting the journey of international students in the US job market. All scenarios are based on real experiences.
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Navigation Buttons Row - Mobile Friendly */}
-      <div className="absolute bottom-12 left-0 right-0 z-[100] flex items-center justify-between px-4 md:hidden">
-        {/* Home Button */}
-        <AnimatePresence>
-          {stage !== 'initial' && stage !== 'home' && stage !== 'final-waiting' && (
-            <motion.button
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                stopSadMusic();
-                setStage('home');
-                setIsRevealed(true);
-              }}
-              className="flex items-center gap-1 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-white/60 font-mono text-[10px] uppercase tracking-wider transition-colors hover:text-white/80"
-            >
-              <ChevronLeft className="w-3 h-3" />
-              Home
-            </motion.button>
-          )}
-        </AnimatePresence>
-        
-        {/* Next Button */}
-        <AnimatePresence>
-          {showNextButton && (
-            <motion.button
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                goToNextStage();
-              }}
-              className="flex items-center gap-1 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-white/60 font-mono text-[10px] uppercase tracking-wider transition-colors hover:text-white/80"
-            >
-              Next
-              <ChevronRight className="w-3 h-3" />
-            </motion.button>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Desktop Buttons */}
+      {/* Bottom Next Button - Only on mobile, bottom right */}
       <AnimatePresence>
         {showNextButton && (
           <motion.button
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+            whileTap={{ scale: 0.95 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              goToNextStage();
+            }}
+            className="absolute bottom-8 right-6 z-[100] flex items-center gap-1 px-5 py-2.5 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-white/60 font-mono text-[10px] uppercase tracking-wider transition-colors hover:text-white/80 md:hidden"
+          >
+            Next
+            <ChevronRight className="w-3 h-3" />
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      {/* Desktop Bottom Next Button */}
+      <AnimatePresence>
+        {showNextButton && (
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={(e) => {
               e.stopPropagation();
@@ -191,73 +150,10 @@ export default function WaitingRoomPage() {
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {stage !== 'initial' && stage !== 'home' && stage !== 'final-waiting' && (
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
-            whileTap={{ scale: 0.95 }}
-            onClick={(e) => {
-              e.stopPropagation();
-              stopSadMusic();
-              setStage('home');
-              setIsRevealed(true);
-            }}
-            className="hidden md:flex absolute bottom-12 left-12 z-[100] items-center gap-2 px-6 py-3 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-white/60 font-mono text-xs tracking-widest uppercase transition-colors hover:text-white/80"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Home
-          </motion.button>
-        )}
-      </AnimatePresence>
-
       {/* Game Overlay */}
       {showGame && (
         <JobCatcher onExit={() => setShowGame(false)} />
       )}
-
-      {/* Top Navigation Buttons Row */}
-      <div className="absolute top-4 left-0 right-0 z-[110] flex items-center justify-center gap-3 px-4">
-        <AnimatePresence>
-          {stage !== 'initial' && stage !== 'final-waiting' && (
-            <motion.button
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 3.5, duration: 0.5 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                stopSadMusic();
-                setStage('initial');
-                setIsRevealed(false);
-              }}
-              className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-white/60 font-mono text-[10px] uppercase tracking-wider transition-colors hover:text-white/80 hover:bg-white/10"
-            >
-              <ChevronLeft className="w-3 h-3" />
-              Home
-            </motion.button>
-          )}
-        </AnimatePresence>
-        <AnimatePresence>
-          {stage !== 'initial' && stage !== 'final-waiting' && (
-            <motion.button
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 3.5, duration: 0.5 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                stopSadMusic();
-                setShowGame(true);
-              }}
-              className="flex items-center gap-2 px-4 py-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 backdrop-blur-md text-emerald-400 font-mono text-[10px] uppercase tracking-wider transition-colors hover:bg-emerald-500/20"
-            >
-              <Gamepad2 className="w-3 h-3" />
-              Game
-            </motion.button>
-          )}
-        </AnimatePresence>
-      </div>
 
       <AnimatePresence mode="wait">
         {!isRevealed ? (
@@ -273,10 +169,7 @@ export default function WaitingRoomPage() {
                   style={{ perspective: 1000, transformStyle: "preserve-3d" }}
                 >
                   <div className="flex flex-col items-center leading-[0.8] mix-blend-screen overflow-visible will-change-transform whitespace-nowrap mt-4">
-                    <motion.div
-                      animate={{ opacity: stage === 'countdown' || stage === 'zooming' ? 0 : 1, y: stage === 'countdown' || stage === 'zooming' ? -50 : 0 }}
-                      transition={{ duration: 1 }}
-                    >
+                    <motion.div animate={{ opacity: stage === 'countdown' || stage === 'zooming' ? 0 : 1, y: stage === 'countdown' || stage === 'zooming' ? -50 : 0 }} transition={{ duration: 1 }}>
                       <TextScramble
                         className="text-zinc-50 text-[5.5rem] md:text-[9rem] lg:text-[13rem] font-black tracking-tighter uppercase inline-block origin-center"
                         style={{ textShadow: "0 20px 50px rgba(0,0,0,0.9), 0 0 100px rgba(255,255,255,0.3)" }}
@@ -288,102 +181,36 @@ export default function WaitingRoomPage() {
                         THE
                       </TextScramble>
                     </motion.div>
-                    <motion.div
-                      className="origin-center inline-block will-change-transform"
-                      style={{ transformOrigin: "50% 50%" }}
-                      animate={stage === 'zooming' ? {
-                        scale: [1, 5, 25],
-                        rotateX: [0, 5, 10],
-                        rotateZ: [0, -2, -5],
-                        opacity: [1, 1, 0]
-                      } : { scale: 1, opacity: 1 }}
-                      transition={stage === 'zooming' ? { duration: 1.5, times: [0, 0.8, 1], ease: "easeIn" } : { duration: 0.3 }}
-                    >
+                    <motion.div className="origin-center inline-block will-change-transform" style={{ transformOrigin: "50% 50%" }} animate={stage === 'zooming' ? { scale: [1, 5, 25], rotateX: [0, 5, 10], rotateZ: [0, -2, -5], opacity: [1, 1, 0] } : { scale: 1, opacity: 1 }} transition={stage === 'zooming' ? { duration: 1.5, times: [0, 0.8, 1], ease: "easeIn" } : { duration: 0.3 }}>
                       {stage === 'countdown' || stage === 'zooming' ? (
                         <div className="flex flex-col items-center">
-                          <motion.div
-                            initial={{ opacity: 0, y: -20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="text-red-500/60 font-mono text-xs uppercase tracking-[0.4em] mb-4"
-                          >
-                            OPT CLOCK
-                          </motion.div>
-                          <div
-                            className="text-[5.5rem] md:text-[9rem] lg:text-[13rem] font-black uppercase inline-block"
-                            style={{ color: "#dc2626" }}
-                          >
+                          <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="text-red-500/60 font-mono text-xs uppercase tracking-[0.4em] mb-4">OPT CLOCK</motion.div>
+                          <div className="text-[5.5rem] md:text-[9rem] lg:text-[13rem] font-black uppercase inline-block" style={{ color: "#dc2626" }}>
                             <OPTTimer />
                           </div>
                         </div>
                       ) : (
-                        <TextScramble
-                          className="text-[5.5rem] md:text-[9rem] lg:text-[13rem] font-black tracking-tighter uppercase inline-block"
-                          style={{
-                            textShadow: "0 0 80px rgba(220,38,38,0.6), 0 20px 50px rgba(0,0,0,0.9)",
-                            color: "#dc2626"
-                          }}
-                          duration={1.5}
-                          speed={0.04}
-                          characterSet="01!*&()—_[]WAITING"
-                          onScrambleStep={playRapid}
-                        >
-                          WAITING
-                        </TextScramble>
+                        <TextScramble className="text-[5.5rem] md:text-[9rem] lg:text-[13rem] font-black tracking-tighter uppercase inline-block" style={{ textShadow: "0 0 80px rgba(220,38,38,0.6), 0 20px 50px rgba(0,0,0,0.9)", color: "#dc2626" }} duration={1.5} speed={0.04} characterSet="01!*&()—_[]WAITING" onScrambleStep={playRapid}>WAITING</TextScramble>
                       )}
                     </motion.div>
-                    <motion.div
-                      animate={{ opacity: stage === 'countdown' || stage === 'zooming' ? 0 : 1, y: stage === 'countdown' || stage === 'zooming' ? 50 : 0 }}
-                      transition={{ duration: 1 }}
-                    >
-                      <TextScramble
-                        className="text-zinc-50 text-[5.5rem] md:text-[9rem] lg:text-[13rem] font-black tracking-tighter uppercase inline-block origin-center"
-                        style={{ textShadow: "0 20px 50px rgba(0,0,0,0.9), 0 0 100px rgba(255,255,255,0.3)" }}
-                        duration={1.8}
-                        speed={0.03}
-                        characterSet="01!*&()—_[]ROOM"
-                        onScrambleStep={playRapid}
-                      >
-                        ROOM
-                      </TextScramble>
+                    <motion.div animate={{ opacity: stage === 'countdown' || stage === 'zooming' ? 0 : 1, y: stage === 'countdown' || stage === 'zooming' ? 50 : 0 }} transition={{ duration: 1 }}>
+                      <TextScramble className="text-zinc-50 text-[5.5rem] md:text-[9rem] lg:text-[13rem] font-black tracking-tighter uppercase inline-block origin-center" style={{ textShadow: "0 20px 50px rgba(0,0,0,0.9), 0 0 100px rgba(255,255,255,0.3)" }} duration={1.8} speed={0.03} characterSet="01!*&()—_[]ROOM" onScrambleStep={playRapid}>ROOM</TextScramble>
                     </motion.div>
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            <AnimatePresence>
-              {stage === 'loan' && (
-                <LoanCounter />
-              )}
-            </AnimatePresence>
-
-            <AnimatePresence>
-              {stage === 'survival' && (
-                <SurvivalDashboard />
-              )}
-            </AnimatePresence>
-
-            <AnimatePresence>
-              {stage === 'breakthrough' && (
-                <Breakthrough onComplete={() => setStage('final-waiting')} />
-              )}
-            </AnimatePresence>
-
-            <AnimatePresence>
-              {stage === 'final-waiting' && (
-                <FinalWaitingRoom playRapid={playRapid} />
-              )}
-            </AnimatePresence>
+            <AnimatePresence>{stage === 'loan' && <LoanCounter />}</AnimatePresence>
+            <AnimatePresence>{stage === 'survival' && <SurvivalDashboard />}</AnimatePresence>
+            <AnimatePresence>{stage === 'breakthrough' && <Breakthrough onComplete={() => setStage('final-waiting')} />}</AnimatePresence>
+            <AnimatePresence>{stage === 'final-waiting' && <FinalWaitingRoom playRapid={playRapid} />}</AnimatePresence>
 
             <AnimatePresence>
               {(stage === 'waiting' || stage === 'zooming' || stage === 'home') && (
                 <motion.img
                   initial={{ opacity: 0 }}
-                  animate={
-                    stage === 'home' ? { opacity: 0.05, scale: 1 } :
-                    stage === 'zooming' ? { opacity: 0, scale: 1.5 } : 
-                    { opacity: 0.15, scale: 1 }
-                  }
+                  animate={stage === 'home' ? { opacity: 0.05, scale: 1 } : stage === 'zooming' ? { opacity: 0, scale: 1.5 } : { opacity: 0.15, scale: 1 }}
                   transition={stage === 'zooming' ? { duration: 2 } : { delay: 1, duration: 4 }}
                   exit={{ opacity: 0 }}
                   src="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=2070&auto=format&fit=crop"
@@ -393,11 +220,7 @@ export default function WaitingRoomPage() {
               )}
             </AnimatePresence>
 
-            <AnimatePresence>
-              {stage === 'rejections' && (
-                <RejectionCards />
-              )}
-            </AnimatePresence>
+            <AnimatePresence>{stage === 'rejections' && <RejectionCards />}</AnimatePresence>
 
             <AnimatePresence>
               {stage === 'home' && (
@@ -408,51 +231,33 @@ export default function WaitingRoomPage() {
                   transition={{ duration: 2, ease: "easeOut" }}
                   className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black"
                 >
-                  {/* Top Home Button for Terminal Page */}
-                  <motion.button
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 3.5, duration: 0.5 }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      stopSadMusic();
-                      setStage('initial');
-                      setIsRevealed(false);
-                    }}
-                    className="absolute top-6 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-white/60 font-mono text-[10px] uppercase tracking-wider transition-colors hover:text-white/80 hover:bg-white/10 md:hidden"
-                  >
-                    <ChevronLeft className="w-3 h-3" />
-                    Home
-                  </motion.button>
+                  {/* Top Nav: Home + Game buttons - ONLY on terminal/home stage */}
+                  <div className="absolute top-6 left-0 right-0 z-[110] flex items-center justify-center gap-4">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); stopSadMusic(); setStage('initial'); setIsRevealed(false); }}
+                      className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-white/60 font-mono text-xs uppercase tracking-wider transition-colors hover:text-white/80 hover:bg-white/10"
+                    >
+                      <ChevronLeft className="w-3 h-3" />
+                      Home
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setShowGame(true); }}
+                      className="flex items-center gap-2 px-4 py-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 backdrop-blur-md text-emerald-400 font-mono text-xs uppercase tracking-wider transition-colors hover:bg-emerald-500/20"
+                    >
+                      <Gamepad2 className="w-3 h-3" />
+                      Game
+                    </button>
+                  </div>
 
-                  <TextScramble
-                    className="text-white text-4xl md:text-6xl lg:text-8xl font-bold tracking-[0.2em] uppercase font-mono text-center px-4 mix-blend-screen"
-                    duration={3.5}
-                    speed={0.05}
-                    characterSet="ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                  >
-                    PRAJWAL SRINIVAS
-                  </TextScramble>
-
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 0.4 }}
-                    transition={{ delay: 3, duration: 3 }}
-                    className="absolute inset-0 bg-gradient-to-b from-transparent to-zinc-900 pointer-events-none"
-                  />
+                  <TextScramble className="text-white text-4xl md:text-6xl lg:text-8xl font-bold tracking-[0.2em] uppercase font-mono text-center px-4 mix-blend-screen" duration={3.5} speed={0.05} characterSet="ABCDEFGHIJKLMNOPQRSTUVWXYZ">PRAJWAL SRINIVAS</TextScramble>
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.4 }} transition={{ delay: 3, duration: 3 }} className="absolute inset-0 bg-gradient-to-b from-transparent to-zinc-900 pointer-events-none" />
                   <CommandCenter onPlaySound={playTick} onHome={() => setIsRevealed(true)} onStopMusic={stopSadMusic} />
                 </motion.div>
               )}
             </AnimatePresence>
           </motion.div>
         ) : (
-          <motion.div
-            key="portfolio"
-            initial={{ opacity: 0, filter: "blur(20px)" }}
-            animate={{ opacity: 1, filter: "blur(0px)" }}
-            transition={{ duration: 1.5, ease: "easeOut" }}
-            className="absolute inset-0 z-50 bg-black flex flex-col p-4 md:p-8 overflow-hidden"
-          >
+          <motion.div key="portfolio" initial={{ opacity: 0, filter: "blur(20px)" }} animate={{ opacity: 1, filter: "blur(0px)" }} transition={{ duration: 1.5, ease: "easeOut" }} className="absolute inset-0 z-50 bg-black flex flex-col p-4 md:p-8 overflow-hidden">
             <MainPortfolio onPlaySound={playTick} onStopMusic={stopSadMusic} />
           </motion.div>
         )}
