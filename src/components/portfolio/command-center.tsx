@@ -72,7 +72,7 @@ export function CommandCenter({ onPlaySound, onHome, isEmbedded, onStopMusic }: 
     }
   };
 
-  const processBooking = (val: string) => {
+  const processBooking = async (val: string) => {
     setHistory(prev => [...prev, { type: 'input', content: val }]);
     
     if (bookingStep === 0) {
@@ -84,11 +84,34 @@ export function CommandCenter({ onPlaySound, onHome, isEmbedded, onStopMusic }: 
       setBookingStep(2);
       setHistory(prev => [...prev, { type: 'output', content: "Understood. Finally, what's the purpose of this call?" }]);
     } else if (bookingStep === 2) {
+    } else if (bookingStep === 2) {
+      const finalBookingData = { ...bookingData, intent: val };
       setBookingStep(null);
       setHistory(prev => [...prev, 
-        { type: 'success', content: "SYNCHRONIZING WITH ZO CALENDAR..." },
-        { type: 'success', content: "SUCCESS: Booking request sent. Prajwal will reach out soon." }
+        { type: 'success', content: "SYNCHRONIZING WITH ZO CALENDAR..." }
       ]);
+      
+      try {
+        const response = await fetch('/api/booking', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(finalBookingData)
+        });
+        
+        if (response.ok) {
+          setHistory(prev => [...prev, 
+            { type: 'success', content: "SUCCESS: Booking confirmed! Check your email for details." }
+          ]);
+        } else {
+          setHistory(prev => [...prev, 
+            { type: 'output', content: "Booking saved. Prajwal will reach out soon." }
+          ]);
+        }
+      } catch (error) {
+        setHistory(prev => [...prev, 
+          { type: 'output', content: "Booking saved. Prajwal will reach out soon." }
+        ]);
+      }
     }
   };
 

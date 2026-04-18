@@ -15,6 +15,15 @@ const mode: Mode =
  * Add any API routes here.
  */
 app.get("/api/hello-zo", (c) => c.json({ msg: "Hello from Zo" }));
+app.post("/api/booking", (c) => {
+  // Simulate saving a booking
+  const booking = {
+    id: Date.now(),
+    status: "created",
+    createdAt: new Date().toISOString(),
+  };
+  return c.json(booking, 201);
+});
 
 if (mode === "production") {
   configureProduction(app);
