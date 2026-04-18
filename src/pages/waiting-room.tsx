@@ -266,6 +266,13 @@ export default function WaitingRoomPage() {
                     >
                       Portfolio
                     </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setShowGame(true); }}
+                      className="flex items-center gap-2 px-4 py-2 rounded-full border border-amber-500/30 bg-amber-500/10 backdrop-blur-md text-amber-400 font-mono text-xs uppercase tracking-wider transition-colors hover:bg-amber-500/20"
+                    >
+                      <Gamepad2 className="w-3 h-3" />
+                      Game
+                    </button>
                   </div>
 
                   <TextScramble className="text-white text-4xl md:text-6xl lg:text-8xl font-bold tracking-[0.2em] uppercase font-mono text-center px-4 mix-blend-screen" duration={3.5} speed={0.05} characterSet="ABCDEFGHIJKLMNOPQRSTUVWXYZ">PRAJWAL SRINIVAS</TextScramble>
