@@ -109,6 +109,26 @@ export default function WaitingRoomPage() {
         )}
       </AnimatePresence>
 
+      {/* Skip to Portfolio button - ONLY on initial page */}
+      <AnimatePresence>
+        {stage === 'initial' && (
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              stopSadMusic();
+              setStage('home');
+              setIsRevealed(true);
+            }}
+            className="absolute top-8 right-6 z-[100] flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-white/60 font-mono text-[10px] uppercase tracking-wider transition-colors hover:text-white/80 hover:bg-white/10"
+          >
+            Skip to Portfolio →
+          </motion.button>
+        )}
+      </AnimatePresence>
+
       {/* Bottom Next Button - Only on mobile, bottom right */}
       <AnimatePresence>
         {showNextButton && (
@@ -231,23 +251,7 @@ export default function WaitingRoomPage() {
                   transition={{ duration: 2, ease: "easeOut" }}
                   className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black"
                 >
-                  {/* Top Nav: Home + Game buttons - ONLY on terminal/home stage */}
-                  <div className="absolute top-6 left-0 right-0 z-[110] flex items-center justify-center gap-4">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); stopSadMusic(); setStage('initial'); setIsRevealed(false); }}
-                      className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-white/60 font-mono text-xs uppercase tracking-wider transition-colors hover:text-white/80 hover:bg-white/10"
-                    >
-                      <ChevronLeft className="w-3 h-3" />
-                      Home
-                    </button>
-                    <button
-                      onClick={(e) => { e.stopPropagation(); setShowGame(true); }}
-                      className="flex items-center gap-2 px-4 py-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 backdrop-blur-md text-emerald-400 font-mono text-xs uppercase tracking-wider transition-colors hover:bg-emerald-500/20"
-                    >
-                      <Gamepad2 className="w-3 h-3" />
-                      Game
-                    </button>
-                  </div>
+                  {/* No Home button on terminal - user must type /home or wait for auto-advance */}
 
                   <TextScramble className="text-white text-4xl md:text-6xl lg:text-8xl font-bold tracking-[0.2em] uppercase font-mono text-center px-4 mix-blend-screen" duration={3.5} speed={0.05} characterSet="ABCDEFGHIJKLMNOPQRSTUVWXYZ">PRAJWAL SRINIVAS</TextScramble>
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.4 }} transition={{ delay: 3, duration: 3 }} className="absolute inset-0 bg-gradient-to-b from-transparent to-zinc-900 pointer-events-none" />
