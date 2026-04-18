@@ -1,6 +1,7 @@
 import { motion, type Variants } from 'framer-motion';
-import { Github, Mail, ExternalLink, Cpu, Database, Coffee, Calendar, Briefcase, GraduationCap, Code2, Cloud, Brain, Shield, Zap } from 'lucide-react';
+import { Github, Mail, ExternalLink, Cpu, Database, Coffee, Calendar, Briefcase, GraduationCap, Code2, Cloud, Brain, Shield, Zap, Gamepad2 } from 'lucide-react';
 import { useState } from 'react';
+import { JobCatcher } from '@/components/game/job-catcher';
 
 interface MainPortfolioProps {
     onPlaySound?: () => void;
@@ -8,6 +9,7 @@ interface MainPortfolioProps {
 }
 
 export function MainPortfolio({ onPlaySound, onStopMusic }: MainPortfolioProps) {
+  const [showGame, setShowGame] = useState(false);
   const [showCustom, setShowCustom] = useState(false);
   const [customAmount, setCustomAmount] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
