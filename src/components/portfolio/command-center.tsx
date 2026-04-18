@@ -11,9 +11,10 @@ interface CommandCenterProps {
   onPlaySound?: () => void;
   onHome?: () => void;
   isEmbedded?: boolean;
+  onStopMusic?: () => void;
 }
 
-export function CommandCenter({ onPlaySound, onHome, isEmbedded }: CommandCenterProps) {
+export function CommandCenter({ onPlaySound, onHome, isEmbedded, onStopMusic }: CommandCenterProps) {
   const [history, setHistory] = useState<HistoryItem[]>([
     { type: 'output', content: "ZO CLOUD OS [Version 1.0.42]" },
     { type: 'output', content: "Connection established with Cloud Node..." },
@@ -40,6 +41,9 @@ export function CommandCenter({ onPlaySound, onHome, isEmbedded }: CommandCenter
 
   const handleCommand = (cmd: string) => {
     const trimmed = cmd.trim().toLowerCase();
+    
+    // Stop music on any user interaction
+    onStopMusic?.();
     
     // Handle Booking Flow
     if (bookingStep !== null) {

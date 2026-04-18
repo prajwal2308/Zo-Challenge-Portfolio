@@ -308,7 +308,7 @@ export default function WaitingRoomPage() {
                     transition={{ delay: 3, duration: 3 }}
                     className="absolute inset-0 bg-gradient-to-b from-transparent to-zinc-900 pointer-events-none"
                   />
-                  <CommandCenter onPlaySound={playTick} onHome={() => setIsRevealed(true)} />
+                  <CommandCenter onPlaySound={playTick} onHome={() => setIsRevealed(true)} onStopMusic={stopSadMusic} />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -321,7 +321,7 @@ export default function WaitingRoomPage() {
             transition={{ duration: 1.5, ease: "easeOut" }}
             className="absolute inset-0 z-50 bg-black flex flex-col p-4 md:p-8 overflow-hidden"
           >
-            <MainPortfolio onPlaySound={playTick} />
+            <MainPortfolio onPlaySound={playTick} onStopMusic={stopSadMusic} />
           </motion.div>
         )}
       </AnimatePresence>
