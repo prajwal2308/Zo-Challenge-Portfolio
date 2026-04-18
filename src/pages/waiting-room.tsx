@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { TextScramble } from "@/components/ui/text-scramble";
-import { ChevronRight, ChevronLeft } from "lucide-react";
+import { ChevronRight, ChevronLeft, Gamepad2 } from "lucide-react";
 import { RejectionCards } from "@/components/story/rejection-cards";
 import { useAudioTick } from "@/hooks/use-audio-tick";
 import { OPTTimer } from "@/components/story/opt-timer";
@@ -11,6 +11,7 @@ import { MainPortfolio } from "@/components/portfolio/main-portfolio";
 import { SurvivalDashboard } from "@/components/story/survival-dashboard";
 import { Breakthrough } from "@/components/story/breakthrough";
 import { FinalWaitingRoom } from "@/components/story/final-waiting-room";
+import { JobCatcher } from "@/components/game/job-catcher";
 
 type Stage = 'initial' | 'waiting' | 'countdown' | 'zooming' | 'loan' | 'rejections' | 'home' | 'survival' | 'breakthrough' | 'final-waiting';
 
@@ -19,6 +20,7 @@ const STAGE_ORDER: Stage[] = ['initial', 'waiting', 'countdown', 'zooming', 'rej
 export default function WaitingRoomPage() {
   const [stage, setStage] = useState<Stage>('initial');
   const [isRevealed, setIsRevealed] = useState(false);
+  const [showGame, setShowGame] = useState(false);
   const { playTick, playRapid, startSadMusic, stopSadMusic } = useAudioTick();
 
   const getNextStage = (current: Stage): Stage | null => {
@@ -211,6 +213,52 @@ export default function WaitingRoomPage() {
         )}
       </AnimatePresence>
 
+      {/* Game Overlay */}
+      {showGame && (
+        <JobCatcher onExit={() => setShowGame(false)} />
+      )}
+
+      {/* Top Navigation Buttons Row */}
+      <div className="absolute top-4 left-0 right-0 z-[110] flex items-center justify-center gap-3 px-4">
+        <AnimatePresence>
+          {stage !== 'initial' && stage !== 'final-waiting' && (
+            <motion.button
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 3.5, duration: 0.5 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                stopSadMusic();
+                setStage('initial');
+                setIsRevealed(false);
+              }}
+              className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-white/60 font-mono text-[10px] uppercase tracking-wider transition-colors hover:text-white/80 hover:bg-white/10"
+            >
+              <ChevronLeft className="w-3 h-3" />
+              Home
+            </motion.button>
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {stage !== 'initial' && stage !== 'final-waiting' && (
+            <motion.button
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 3.5, duration: 0.5 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                stopSadMusic();
+                setShowGame(true);
+              }}
+              className="flex items-center gap-2 px-4 py-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 backdrop-blur-md text-emerald-400 font-mono text-[10px] uppercase tracking-wider transition-colors hover:bg-emerald-500/20"
+            >
+              <Gamepad2 className="w-3 h-3" />
+              Game
+            </motion.button>
+          )}
+        </AnimatePresence>
+      </div>
+
       <AnimatePresence mode="wait">
         {!isRevealed ? (
           <motion.div key="splash" className="contents">
@@ -360,6 +408,23 @@ export default function WaitingRoomPage() {
                   transition={{ duration: 2, ease: "easeOut" }}
                   className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black"
                 >
+                  {/* Top Home Button for Terminal Page */}
+                  <motion.button
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 3.5, duration: 0.5 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      stopSadMusic();
+                      setStage('initial');
+                      setIsRevealed(false);
+                    }}
+                    className="absolute top-6 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-white/60 font-mono text-[10px] uppercase tracking-wider transition-colors hover:text-white/80 hover:bg-white/10 md:hidden"
+                  >
+                    <ChevronLeft className="w-3 h-3" />
+                    Home
+                  </motion.button>
+
                   <TextScramble
                     className="text-white text-4xl md:text-6xl lg:text-8xl font-bold tracking-[0.2em] uppercase font-mono text-center px-4 mix-blend-screen"
                     duration={3.5}
