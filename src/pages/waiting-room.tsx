@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { TextScramble } from "@/components/ui/text-scramble";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, ChevronLeft } from "lucide-react";
 import { RejectionCards } from "@/components/story/rejection-cards";
 import { useAudioTick } from "@/hooks/use-audio-tick";
 import { OPTTimer } from "@/components/story/opt-timer";
@@ -140,6 +140,29 @@ export default function WaitingRoomPage() {
           >
             Next Page
             <ChevronRight className="w-4 h-4" />
+          </motion.button>
+        )}
+      </AnimatePresence>
+
+      {/* Home Button - Skip to Portfolio */}
+      <AnimatePresence>
+        {stage !== 'initial' && (
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            whileHover={{ scale: 1.05, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
+            whileTap={{ scale: 0.95 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              stopSadMusic();
+              setStage('home');
+              setIsRevealed(true);
+            }}
+            className="absolute bottom-12 left-12 z-[100] flex items-center gap-2 px-6 py-3 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-white/60 font-mono text-xs tracking-widest uppercase transition-colors hover:text-white/80"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Home
           </motion.button>
         )}
       </AnimatePresence>

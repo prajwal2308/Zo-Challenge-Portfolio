@@ -11,25 +11,104 @@ const app = new Hono();
 const mode: Mode =
   process.env.NODE_ENV === "production" ? "production" : "development";
 
-/**
- * Add any API routes here.
- */
-app.get("/api/hello-zo", (c) => c.json({ msg: "Hello from Zo" }));
-app.post("/api/booking", (c) => {
-  // Simulate saving a booking
-  const booking = {
-    id: Date.now(),
-    status: "created",
-    createdAt: new Date().toISOString(),
-  };
-  return c.json(booking, 201);
-});
+// Lazy Stripe initialization
+let _stripe: any = null;
+const getStripe = async () => {
+  if (_stripe) return _stripe;
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) throw new Error("STRIPE_SECRET_KEY not configured");
+  const Stripe = (await import('stripe')).default;
+  _stripe = new Stripe(key);
+  return _stripe;
+};
 
 if (mode === "production") {
   configureProduction(app);
 } else {
   await configureDevelopment(app);
 }
+
+/**
+ * Add any API routes here.
+ */
+app.get("/api/hello-zo", (c) => c.json({ msg: "Hello from Zo" }));
+app.post("/api/booking", async (c) => {
+  const { name, email, date, time, message } = await c.req.json();
+  
+  if (!name || !email || !date || !time) {
+    return c.json({ error: "Missing required fields" }, 400);
+  }
+
+  // Parse date and time
+  const [hourStr, period] = time.match(/(\d+):(\d+)\s*(AM|PM)/i) ? 
+    [time.match(/(\d+):(\d+)\s*(AM|PM)/i)[1], time.match(/(\d+):(\d+)\s*(AM|PM)/i)[3].toUpperCase()] : 
+    [time.split(':')[0], time.includes('PM') ? 'PM' : 'AM'];
+  let hour = parseInt(hourStr);
+  if (period === 'PM' && hour !== 12) hour += 12;
+  if (period === 'AM' && hour === 12) hour = 0;
+  
+  const startTime = new Date(`${date}T${hour.toString().padStart(2, '0')}:${time.split(':')[1].substring(0,2)}:00`);
+  const endTime = new Date(startTime.getTime() + 30 * 60 * 1000); // 30 min meeting
+
+  // Create Google Calendar event with Meet link
+  const stripe = getStripe();
+  const calendarEvent = await stripe.calendars.createEvent({
+    calendarId: 'primary',
+    requestBody: {
+      summary: `Call with ${name}`,
+      description: message || 'Meeting scheduled from portfolio',
+      start: { dateTime: startTime.toISOString() },
+      end: { dateTime: endTime.toISOString() },
+      conferenceData: { createRequest: { requestId: `portfolio-${Date.now()}`, conferenceSolutionKey: { type: 'hangoutsMeet' } } },
+      attendees: [{ email, displayName: name }],
+    },
+    sendUpdates: 'all',
+  });
+
+  return c.json({ success: true, event: calendarEvent }, 201);
+});
+
+app.post("/api/create-payment-intent", async (c) => {
+  const { amount } = await c.req.json();
+  
+  if (!amount || amount < 100 || amount > 10000) {
+    return c.json({ error: "Invalid amount" }, 400);
+  }
+
+  const stripe = await getStripe();
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: Math.round(amount),
+    currency: "usd",
+    automatic_payment_methods: { enabled: true },
+  });
+
+  return c.json({ clientSecret: paymentIntent.client_secret });
+});
+
+app.post("/api/create-checkout-session", async (c) => {
+  const { amount } = await c.req.json();
+  
+  if (!amount || amount < 100 || amount > 10000) {
+    return c.json({ error: "Invalid amount" }, 400);
+  }
+
+  const stripe = await getStripe();
+  const session = await stripe.checkout.sessions.create({
+    mode: "payment",
+    line_items: [{
+      price_data: {
+        currency: "usd",
+        product_data: { name: "Buy Me a Coffee" },
+        unit_amount: Math.round(amount),
+      },
+      quantity: 1,
+    }],
+    success_url: "https://buy.stripe.com/success",
+    cancel_url: "https://zo-challenge-praju.zocomputer.io",
+  });
+  
+  return c.json({ url: session.url });
+});
 
 /**
  * Determine port based on mode. In production, use the published_port if available.
