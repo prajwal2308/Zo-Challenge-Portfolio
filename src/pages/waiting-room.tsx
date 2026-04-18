@@ -246,8 +246,8 @@ export default function WaitingRoomPage() {
                   transition={{ duration: 2, ease: "easeOut" }}
                   className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black"
                 >
-                  {/* Top Navigation: Home + Game buttons */}
-                  <div className="absolute top-4 left-0 right-0 z-[110] flex items-center justify-center gap-4 px-4">
+                  {/* Top Navigation: Home + Game buttons - move down a bit */}
+                  <div className="absolute top-6 left-0 right-0 z-[110] flex items-center justify-center gap-4 px-4 md:top-8">
                     <button
                       onClick={(e) => { e.stopPropagation(); stopSadMusic(); setStage('initial'); setIsRevealed(false); }}
                       className="flex items-center gap-2 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-white/60 font-mono text-xs uppercase tracking-wider transition-colors hover:text-white/80 hover:bg-white/10"

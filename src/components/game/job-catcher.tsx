@@ -233,7 +233,7 @@ export function JobCatcher({ onExit }: { onExit?: () => void }) {
   const hearts = Array.from({ length: 3 }, (_, i) => i < hud.lives);
 
   return (
-    <div ref={wrapRef} className="fixed inset-0 z-[300] overflow-hidden pt-safe-area-inset-top" style={{ background: "#020609", paddingTop: "env(safe-area-inset-top, 0px)" }}>
+    <div className="fixed inset-0 z-[300] overflow-hidden" style={{ background: "#020609" }}>
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full touch-none"
