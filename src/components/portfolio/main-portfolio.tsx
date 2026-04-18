@@ -181,6 +181,10 @@ export function MainPortfolio({ onPlaySound, onStopMusic }: MainPortfolioProps) 
               <Github className='w-5 h-5 text-zinc-300' />
               <span className='text-zinc-300 font-medium text-sm'>View GitHub Profile</span>
             </a>
+            <a href='https://zo.com' target='_blank' className='flex items-center gap-3 p-3 rounded-xl bg-zinc-700/50 hover:bg-zinc-700/70 border border-zinc-600/30 transition-all'>
+              <ExternalLink className='w-5 h-5 text-zinc-300' />
+              <span className='text-zinc-300 font-medium text-sm'>Play Zo Game</span>
+            </a>
           </div>
         </div>
 
