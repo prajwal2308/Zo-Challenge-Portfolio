@@ -148,7 +148,7 @@ export function CommandCenter({ onPlaySound, onHome, isEmbedded, onStopMusic }: 
           ))}
         </div>
 
-        <form 
+        <form
           onSubmit={(e) => {
             e.preventDefault();
             if (input.trim()) {
@@ -156,9 +156,9 @@ export function CommandCenter({ onPlaySound, onHome, isEmbedded, onStopMusic }: 
               setInput("");
             }
           }}
-          className="p-4 border-t border-white/5 flex items-center gap-3"
+          className="p-3 border-t border-white/5 flex items-center gap-2"
         >
-          <span className="text-emerald-500 font-mono text-xs animate-pulse">❯</span>
+          <span className="text-emerald-500 font-mono text-xs animate-pulse hidden sm:inline">❯</span>
           <input
             ref={inputRef}
             autoFocus={!isEmbedded}
@@ -168,9 +168,15 @@ export function CommandCenter({ onPlaySound, onHome, isEmbedded, onStopMusic }: 
                 setInput(e.target.value);
                 onPlaySound?.();
             }}
-            placeholder="Type a command..."
+            placeholder="Type command..."
             className="flex-1 bg-transparent border-none outline-none text-white font-mono text-xs placeholder:text-zinc-700"
           />
+          <button
+            type="submit"
+            className="sm:hidden flex-shrink-0 px-3 py-1.5 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs font-medium hover:bg-emerald-500/30 transition-colors active:scale-95"
+          >
+            Send
+          </button>
         </form>
       </div>
     </motion.div>
