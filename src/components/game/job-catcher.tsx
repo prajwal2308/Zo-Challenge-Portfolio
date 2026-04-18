@@ -1,207 +1,367 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 
-const ITEMS = [
-  { emoji: "💼", type: "job", points: 10, label: "Job Offer!" },
-  { emoji: "🌟", type: "special", points: 25, label: "FAANG!" },
-  { emoji: "🎯", type: "job", points: 10, label: "Target!" },
-  { emoji: "🚀", type: "special", points: 20, label: "Startup!" },
-  { emoji: "💰", type: "bonus", points: 50, label: "$150K!" },
-  { emoji: "❌", type: "reject", points: -15, label: "Reject!" },
+const JOBS = [
+  { title: "Backend Engineer", company: "Google", salary: "$180K", emoji: "🔍" },
+  { title: "Full Stack Dev", company: "Meta", salary: "$165K", emoji: "💻" },
+  { title: "Cloud Engineer", company: "AWS", salary: "$175K", emoji: "☁️" },
+  { title: "AI/ML Engineer", company: "OpenAI", salary: "$200K", emoji: "🤖" },
+  { title: "DevOps Engineer", company: "Stripe", salary: "$170K", emoji: "🚀" },
+  { title: "Data Engineer", company: "Databricks", salary: "$185K", emoji: "📊" },
+  { title: "Software Engineer", company: "Airbnb", salary: "$175K", emoji: "🏠" },
+  { title: "Platform Engineer", company: "Snowflake", salary: "$182K", emoji: "❄️" },
+  { title: "Security Engineer", company: "Cloudflare", salary: "$165K", emoji: "🛡️" },
+  { title: "SRE", company: "Netflix", salary: "$190K", emoji: "🎬" },
 ];
 
-interface FallingItem {
+const REJECTIONS = ["❌ No visa sponsorship", "❌ 5+ years exp required", "❌ Position filled", "❌ Not authorized to work"];
+
+interface FallingJob {
   id: number;
   x: number;
-  item: typeof ITEMS[0];
+  y: number;
+  job: typeof JOBS[0];
   speed: number;
 }
 
-export function JobCatcher() {
-  const [score, setScore] = useState(0);
-  const [gameStarted, setGameStarted] = useState(false);
-  const [gameOver, setGameOver] = useState(false);
-  const [fallingItems, setFallingItems] = useState<FallingItem[]>([]);
-  const [basketX, setBasketX] = useState(50);
-  const [highScore, setHighScore] = useState(0);
+interface FallingRejection {
+  id: number;
+  x: number;
+  y: number;
+  text: string;
+  speed: number;
+}
+
+interface GameState {
+  score: number;
+  lives: number;
+  jobsCaught: number;
+  rejectionsReceived: number;
+  isGameOver: boolean;
+  isPlaying: boolean;
+  showInstructions: boolean;
+}
+
+export function JobCatcher({ onExit }: { onExit: () => void }) {
+  const [fallingJobs, setFallingJobs] = useState<FallingJob[]>([]);
+  const [fallingRejections, setFallingRejections] = useState<FallingRejection[]>([]);
+  const [gameState, setGameState] = useState<GameState>({
+    score: 0,
+    lives: 3,
+    jobsCaught: 0,
+    rejectionsReceived: 0,
+    isGameOver: false,
+    isPlaying: false,
+    showInstructions: true,
+  });
+  const [catcherPos, setCatcherPos] = useState(50);
+  const [keys, setKeys] = useState<{ left: boolean; right: boolean }>({ left: false, right: false });
   const gameRef = useRef<HTMLDivElement>(null);
-  const frameRef = useRef<number>();
+  const idCounter = useRef(0);
   const lastSpawnRef = useRef(0);
+  const lastRejectionSpawnRef = useRef(0);
 
   useEffect(() => {
-    if (gameStarted && !gameOver) {
-      const handleMouseMove = (e: MouseEvent) => {
-        if (gameRef.current) {
-          const rect = gameRef.current.getBoundingClientRect();
-          const x = ((e.clientX - rect.left) / rect.width) * 100;
-          setBasketX(Math.max(5, Math.min(95, x)));
-        }
-      };
-      
-      const handleTouchMove = (e: TouchEvent) => {
-        if (gameRef.current) {
-          const rect = gameRef.current.getBoundingClientRect();
-          const x = ((e.touches[0].clientX - rect.left) / rect.width) * 100;
-          setBasketX(Math.max(5, Math.min(95, x)));
-        }
-      };
+    if (!gameState.isPlaying || gameState.isGameOver) return;
 
-      window.addEventListener("mousemove", handleMouseMove);
-      window.addEventListener("touchmove", handleTouchMove);
-      
-      return () => {
-        window.removeEventListener("mousemove", handleMouseMove);
-        window.removeEventListener("touchmove", handleTouchMove);
-      };
-    }
-  }, [gameStarted, gameOver]);
+    const gameLoop = setInterval(() => {
+      const now = Date.now();
 
-  useEffect(() => {
-    if (!gameStarted || gameOver) return;
+      // Move catcher
+      if (keys.left) setCatcherPos(prev => Math.max(5, prev - 3));
+      if (keys.right) setCatcherPos(prev => Math.min(95, prev + 3));
 
-    const gameLoop = (timestamp: number) => {
-      // Spawn new items
-      if (timestamp - lastSpawnRef.current > 800) {
-        const randomItem = ITEMS[Math.floor(Math.random() * ITEMS.length)];
-        setFallingItems(prev => [...prev, {
-          id: Date.now() + Math.random(),
-          x: Math.random() * 90 + 5,
-          item: randomItem,
-          speed: 0.5 + Math.random() * 0.5,
-        }]);
-        lastSpawnRef.current = timestamp;
+      // Spawn jobs every 1.5 seconds
+      if (now - lastSpawnRef.current > 1500) {
+        const randomJob = JOBS[Math.floor(Math.random() * JOBS.length)];
+        const newJob: FallingJob = {
+          id: idCounter.current++,
+          x: Math.random() * 80 + 10,
+          y: -15,
+          job: randomJob,
+          speed: 0.3 + Math.random() * 0.3,
+        };
+        setFallingJobs(prev => [...prev, newJob]);
+        lastSpawnRef.current = now;
       }
 
-      // Move items down and check collisions
-      setFallingItems(prev => {
-        const gameRect = gameRef.current?.getBoundingClientRect();
-        if (!gameRect) return prev;
+      // Spawn rejections every 2.5 seconds
+      if (now - lastRejectionSpawnRef.current > 2500) {
+        const randomRejection = REJECTIONS[Math.floor(Math.random() * REJECTIONS.length)];
+        const newRejection: FallingRejection = {
+          id: idCounter.current++,
+          x: Math.random() * 80 + 10,
+          y: -15,
+          text: randomRejection,
+          speed: 0.4 + Math.random() * 0.2,
+        };
+        setFallingRejections(prev => [...prev, newRejection]);
+        lastRejectionSpawnRef.current = now;
+      }
 
-        return prev.map(item => {
-          const newY = item.y !== undefined ? item.y + item.speed : 0;
-          
-          // Check if caught (bottom of game area + basket height)
-          if (newY >= 85) {
-            const basketLeft = basketX - 10;
-            const basketRight = basketX + 10;
-            
-            if (item.x >= basketLeft && item.x <= basketRight) {
-              // Caught!
-              setScore(s => {
-                const newScore = s + item.item.points;
-                if (newScore > highScore) setHighScore(newScore);
-                if (newScore < 0) {
-                  setGameOver(true);
-                  return 0;
-                }
-                return newScore;
-              });
-              return null; // Remove item
-            }
-            // Missed - remove if went off screen
-            if (newY > 100) return null;
-          }
-          
-          return { ...item, y: newY };
-        }).filter(Boolean) as FallingItem[];
+      // Update falling items
+      setFallingJobs(prev => {
+        const updated = prev.map(job => ({ ...job, y: job.y + job.speed }))
+          .filter(job => job.y < 100);
+        return updated;
       });
 
-      frameRef.current = requestAnimationFrame(gameLoop);
-    };
+      setFallingRejections(prev => {
+        const updated = prev.map(rej => ({ ...rej, y: rej.y + rej.speed }))
+          .filter(rej => rej.y < 100);
+        return updated;
+      });
 
-    frameRef.current = requestAnimationFrame(gameLoop);
-    
-    return () => {
-      if (frameRef.current) cancelAnimationFrame(frameRef.current);
+      // Check collisions with catcher
+      const catcherWidth = 20;
+      const catcherTop = 85;
+
+      setFallingJobs(prev => {
+        const caught = prev.filter(job => {
+          const inRange = job.x >= catcherPos - catcherWidth / 2 && job.x <= catcherPos + catcherWidth / 2;
+          const atHeight = job.y >= catcherTop - 5 && job.y <= catcherTop + 10;
+          return inRange && atHeight;
+        });
+
+        if (caught.length > 0) {
+          setGameState(s => ({ ...s, score: s.score + caught.length * 100, jobsCaught: s.jobsCaught + caught.length }));
+        }
+
+        return prev.filter(job => {
+          const inRange = job.x >= catcherPos - catcherWidth / 2 && job.x <= catcherPos + catcherWidth / 2;
+          const atHeight = job.y >= catcherTop - 5 && job.y <= catcherTop + 10;
+          return !(inRange && atHeight);
+        });
+      });
+
+      setFallingRejections(prev => {
+        const hit = prev.filter(rej => {
+          const inRange = rej.x >= catcherPos - catcherWidth / 2 && rej.x <= catcherPos + catcherWidth / 2;
+          const atHeight = rej.y >= catcherTop - 5 && rej.y <= catcherTop + 10;
+          return inRange && atHeight;
+        });
+
+        if (hit.length > 0) {
+          setGameState(s => {
+            const newLives = s.lives - hit.length;
+            return {
+              ...s,
+              lives: Math.max(0, newLives),
+              rejectionsReceived: s.rejectionsReceived + hit.length,
+              isGameOver: newLives <= 0
+            };
+          });
+        }
+
+        return prev.filter(rej => {
+          const inRange = rej.x >= catcherPos - catcherWidth / 2 && rej.x <= catcherPos + catcherWidth / 2;
+          const atHeight = rej.y >= catcherTop - 5 && rej.y <= catcherTop + 10;
+          return !(inRange && atHeight);
+        });
+      });
+
+    }, 50);
+
+    return () => clearInterval(gameLoop);
+  }, [gameState.isPlaying, gameState.isGameOver, catcherPos, keys]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') setKeys(k => ({ ...k, left: true }));
+      if (e.key === 'ArrowRight' || e.key === 'd') setKeys(k => ({ ...k, right: true }));
     };
-  }, [gameStarted, gameOver, basketX, highScore]);
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a') setKeys(k => ({ ...k, left: false }));
+      if (e.key === 'ArrowRight' || e.key === 'd') setKeys(k => ({ ...k, right: false }));
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
 
   const startGame = () => {
-    setScore(0);
-    setGameOver(false);
-    setGameStarted(true);
-    setFallingItems([]);
-    setBasketX(50);
+    setGameState(s => ({ ...s, showInstructions: false, isPlaying: true, score: 0, lives: 3, jobsCaught: 0, rejectionsReceived: 0, isGameOver: false }));
+    setFallingJobs([]);
+    setFallingRejections([]);
+    setCatcherPos(50);
   };
 
-  if (!gameStarted) {
+  const restartGame = () => {
+    setGameState(s => ({ ...s, isGameOver: false, score: 0, lives: 3, jobsCaught: 0, rejectionsReceived: 0 }));
+    setFallingJobs([]);
+    setFallingRejections([]);
+    setCatcherPos(50);
+  };
+
+  if (gameState.showInstructions) {
     return (
-      <div className="flex flex-col items-center justify-center p-4 bg-zinc-900/80 rounded-xl border border-white/10">
-        <div className="text-center mb-4">
-          <div className="text-2xl mb-2">🎮</div>
-          <h3 className="text-white font-bold text-sm mb-1">Job Offer Catcher</h3>
-          <p className="text-zinc-500 text-[10px]">Move mouse/finger to catch offers!</p>
-        </div>
-        <div className="flex gap-4 text-xs mb-4">
-          <span className="text-emerald-400">Best: {highScore}</span>
-        </div>
-        <button
-          onClick={startGame}
-          className="px-4 py-2 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs font-medium hover:bg-emerald-500/30 transition-colors"
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="fixed inset-0 z-[300] bg-black/95 flex flex-col items-center justify-center p-8"
+      >
+        <motion.h2
+          initial={{ y: -20 }}
+          animate={{ y: 0 }}
+          className="text-3xl md:text-4xl font-black text-white mb-6 text-center"
         >
-          Start Game
-        </button>
-      </div>
+          🎯 JOB CATCHER
+        </motion.h2>
+        
+        <div className="bg-zinc-900/80 border border-white/10 rounded-2xl p-6 max-w-md w-full mb-6">
+          <h3 className="text-emerald-400 font-bold mb-4">How to Play:</h3>
+          <ul className="space-y-3 text-zinc-300 text-sm">
+            <li>⬅️ ➡️ Use Arrow Keys or A/D to move</li>
+            <li>💼 <span className="text-emerald-400">Catch falling job offers</span> for +100 points</li>
+            <li>❌ <span className="text-red-400">Avoid rejection emails</span> - you have 3 lives</li>
+            <li>🏆 Survive as long as you can!</li>
+          </ul>
+        </div>
+
+        <div className="flex gap-4">
+          <button
+            onClick={startGame}
+            className="px-8 py-3 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-bold hover:bg-emerald-500/30 transition-all"
+          >
+            Start Game 🎮
+          </button>
+          <button
+            onClick={onExit}
+            className="px-8 py-3 rounded-full bg-white/5 border border-white/10 text-zinc-400 hover:text-white transition-all"
+          >
+            Exit 🚪
+          </button>
+        </div>
+      </motion.div>
+    );
+  }
+
+  if (gameState.isGameOver) {
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="fixed inset-0 z-[300] bg-black/95 flex flex-col items-center justify-center p-8"
+      >
+        <motion.h2
+          initial={{ scale: 0.5 }}
+          animate={{ scale: 1 }}
+          className="text-4xl md:text-5xl font-black text-red-500 mb-4"
+        >
+          GAME OVER
+        </motion.h2>
+        
+        <div className="bg-zinc-900/80 border border-white/10 rounded-2xl p-8 max-w-md w-full mb-6">
+          <div className="text-center space-y-3">
+            <p className="text-5xl font-black text-emerald-400">{gameState.score}</p>
+            <p className="text-zinc-400 text-sm">Final Score</p>
+          </div>
+          <div className="mt-6 grid grid-cols-2 gap-4 text-center">
+            <div className="bg-emerald-500/10 rounded-xl p-3">
+              <p className="text-2xl font-bold text-emerald-400">{gameState.jobsCaught}</p>
+              <p className="text-xs text-zinc-500">Jobs Caught</p>
+            </div>
+            <div className="bg-red-500/10 rounded-xl p-3">
+              <p className="text-2xl font-bold text-red-400">{gameState.rejectionsReceived}</p>
+              <p className="text-xs text-zinc-500">Rejections Hit</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-4">
+          <button
+            onClick={restartGame}
+            className="px-8 py-3 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-bold hover:bg-emerald-500/30 transition-all"
+          >
+            Play Again 🔄
+          </button>
+          <button
+            onClick={onExit}
+            className="px-8 py-3 rounded-full bg-white/5 border border-white/10 text-zinc-400 hover:text-white transition-all"
+          >
+            Exit 🚪
+          </button>
+        </div>
+      </motion.div>
     );
   }
 
   return (
-    <div 
-      ref={gameRef}
-      className="relative h-32 bg-zinc-900/80 rounded-xl border border-white/10 overflow-hidden select-none"
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="fixed inset-0 z-[300] bg-gradient-to-b from-slate-900 to-black"
     >
-      {/* Score */}
-      <div className="absolute top-2 left-2 flex gap-3 z-10">
-        <span className={`text-xs font-mono ${score >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-          Score: {score}
-        </span>
-        <span className="text-xs font-mono text-zinc-500">
-          Best: {highScore}
-        </span>
-      </div>
-      
-      {/* Game Over */}
-      {gameOver && (
-        <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center z-20">
-          <div className="text-2xl mb-2">😅</div>
-          <p className="text-white text-sm font-bold mb-1">Game Over!</p>
-          <p className="text-zinc-400 text-xs mb-3">Too many rejections!</p>
-          <button
-            onClick={startGame}
-            className="px-4 py-2 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs font-medium hover:bg-emerald-500/30 transition-colors"
-          >
-            Try Again
-          </button>
+      {/* Header */}
+      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4">
+        <div className="flex items-center gap-6">
+          <div className="bg-emerald-500/20 border border-emerald-500/30 rounded-xl px-4 py-2">
+            <span className="text-xs text-zinc-400">SCORE</span>
+            <p className="text-2xl font-black text-emerald-400">{gameState.score}</p>
+          </div>
+          <div className="bg-red-500/20 border border-red-500/30 rounded-xl px-4 py-2">
+            <span className="text-xs text-zinc-400">LIVES</span>
+            <p className="text-2xl font-black text-red-400">❤️❤️❤️</p>
+          </div>
         </div>
-      )}
-      
-      {/* Falling Items */}
-      {fallingItems.map(item => (
-        <div
-          key={item.id}
-          className="absolute text-2xl transition-all"
-          style={{
-            left: `${item.x}%`,
-            top: `${item.y || 0}%`,
-            transform: 'translate(-50%, -50%)',
-          }}
+        <button
+          onClick={onExit}
+          className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-zinc-400 hover:text-white transition-all text-sm"
         >
-          {item.item.emoji}
+          Exit 🚪
+        </button>
+      </div>
+
+      {/* Game Area */}
+      <div ref={gameRef} className="relative w-full h-full overflow-hidden">
+        {/* Falling Jobs */}
+        {fallingJobs.map(job => (
+          <motion.div
+            key={job.id}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="absolute"
+            style={{ left: `${job.x}%`, top: `${job.y}%` }}
+          >
+            <div className="bg-emerald-500/20 border border-emerald-500/40 rounded-lg px-3 py-2 text-center shadow-lg shadow-emerald-500/20">
+              <span className="text-xl">{job.job.emoji}</span>
+              <p className="text-white text-xs font-bold mt-1">{job.job.title}</p>
+              <p className="text-emerald-400 text-[10px]">{job.job.company}</p>
+            </div>
+          </motion.div>
+        ))}
+
+        {/* Falling Rejections */}
+        {fallingRejections.map(rej => (
+          <motion.div
+            key={rej.id}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="absolute"
+            style={{ left: `${rej.x}%`, top: `${rej.y}%` }}
+          >
+            <div className="bg-red-500/20 border border-red-500/40 rounded-lg px-3 py-2 text-center">
+              <span className="text-red-400 text-sm font-mono">{rej.text}</span>
+            </div>
+          </motion.div>
+        ))}
+
+        {/* Catcher */}
+        <div
+          className="absolute bottom-12 w-24 h-8 bg-cyan-500/30 border-2 border-cyan-400 rounded-lg transition-all duration-75"
+          style={{ left: `calc(${catcherPos}% - 48px)` }}
+        >
+          <div className="absolute inset-x-0 bottom-0 h-2 bg-cyan-400 rounded-b-lg" />
         </div>
-      ))}
-      
-      {/* Basket */}
-      <div 
-        className="absolute bottom-2 text-3xl transition-all duration-75"
-        style={{ left: `${basketX}%`, transform: 'translateX(-50%)' }}
-      >
-        🧺
       </div>
-      
-      {/* Instructions */}
-      <div className="absolute bottom-1 right-2 text-[8px] text-zinc-600">
-        Catch 💼🎯🌟🚀💰 | Avoid ❌
+
+      {/* Controls hint */}
+      <div className="absolute bottom-4 left-0 right-0 text-center text-zinc-600 text-xs">
+        Use ← → or A/D to move
       </div>
-    </div>
+    </motion.div>
   );
 }

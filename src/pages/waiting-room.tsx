@@ -123,7 +123,52 @@ export default function WaitingRoomPage() {
         )}
       </AnimatePresence>
 
-      {/* Next Page Button */}
+      {/* Navigation Buttons Row - Mobile Friendly */}
+      <div className="absolute bottom-12 left-0 right-0 z-[100] flex items-center justify-between px-4 md:hidden">
+        {/* Home Button */}
+        <AnimatePresence>
+          {stage !== 'initial' && stage !== 'home' && stage !== 'final-waiting' && (
+            <motion.button
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                stopSadMusic();
+                setStage('home');
+                setIsRevealed(true);
+              }}
+              className="flex items-center gap-1 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-white/60 font-mono text-[10px] uppercase tracking-wider transition-colors hover:text-white/80"
+            >
+              <ChevronLeft className="w-3 h-3" />
+              Home
+            </motion.button>
+          )}
+        </AnimatePresence>
+        
+        {/* Next Button */}
+        <AnimatePresence>
+          {showNextButton && (
+            <motion.button
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={(e) => {
+                e.stopPropagation();
+                goToNextStage();
+              }}
+              className="flex items-center gap-1 px-4 py-2 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-white/60 font-mono text-[10px] uppercase tracking-wider transition-colors hover:text-white/80"
+            >
+              Next
+              <ChevronRight className="w-3 h-3" />
+            </motion.button>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Desktop Buttons */}
       <AnimatePresence>
         {showNextButton && (
           <motion.button
@@ -136,7 +181,7 @@ export default function WaitingRoomPage() {
               e.stopPropagation();
               goToNextStage();
             }}
-            className="absolute bottom-12 right-12 z-[100] flex items-center gap-2 px-6 py-3 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-white/60 font-mono text-xs tracking-widest uppercase transition-colors hover:text-white/80"
+            className="hidden md:flex absolute bottom-12 right-12 z-[100] items-center gap-2 px-6 py-3 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-white/60 font-mono text-xs tracking-widest uppercase transition-colors hover:text-white/80"
           >
             Next Page
             <ChevronRight className="w-4 h-4" />
@@ -144,9 +189,8 @@ export default function WaitingRoomPage() {
         )}
       </AnimatePresence>
 
-      {/* Home Button - Skip to Portfolio */}
       <AnimatePresence>
-        {stage !== 'initial' && (
+        {stage !== 'initial' && stage !== 'home' && stage !== 'final-waiting' && (
           <motion.button
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -159,7 +203,7 @@ export default function WaitingRoomPage() {
               setStage('home');
               setIsRevealed(true);
             }}
-            className="absolute bottom-12 left-12 z-[100] flex items-center gap-2 px-6 py-3 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-white/60 font-mono text-xs tracking-widest uppercase transition-colors hover:text-white/80"
+            className="hidden md:flex absolute bottom-12 left-12 z-[100] items-center gap-2 px-6 py-3 rounded-full border border-white/10 bg-white/5 backdrop-blur-md text-white/60 font-mono text-xs tracking-widest uppercase transition-colors hover:text-white/80"
           >
             <ChevronLeft className="w-4 h-4" />
             Home

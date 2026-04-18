@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Terminal } from "lucide-react";
+import { JobCatcher } from "@/components/game/job-catcher";
 
 interface HistoryItem {
   type: 'input' | 'output' | 'error' | 'success';
@@ -22,6 +23,7 @@ export function CommandCenter({ onPlaySound, onHome, isEmbedded, onStopMusic }: 
     { type: 'output', content: "Available commands:" },
     { type: 'output', content: "  /home     - Reveal Portfolio" },
     { type: 'output', content: "  /book     - Initiate booking flow" },
+    { type: 'output', content: "  /game     - Play Job Catcher game" },
     { type: 'output', content: "  /projects - Browse top work" },
     { type: 'output', content: "  /contact  - Get social links" },
     { type: 'output', content: "  /clear    - Clear terminal shell" },
@@ -29,6 +31,7 @@ export function CommandCenter({ onPlaySound, onHome, isEmbedded, onStopMusic }: 
   const [input, setInput] = useState("");
   const [bookingStep, setBookingStep] = useState<string | null>(null);
   const [bookingData, setBookingData] = useState({ name: "", email: "", date: "", intent: "" });
+  const [showGame, setShowGame] = useState(false);
   
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -42,10 +45,8 @@ export function CommandCenter({ onPlaySound, onHome, isEmbedded, onStopMusic }: 
   const handleCommand = (cmd: string) => {
     const trimmed = cmd.trim().toLowerCase();
     
-    // Stop music on any user interaction
     onStopMusic?.();
     
-    // Handle Booking Flow
     if (bookingStep !== null) {
       processBooking(cmd);
       return;
@@ -54,12 +55,15 @@ export function CommandCenter({ onPlaySound, onHome, isEmbedded, onStopMusic }: 
     setHistory(prev => [...prev, { type: 'input', content: cmd }]);
 
     if (trimmed === '/help') {
-      setHistory(prev => [...prev, { type: 'output', content: "AVAILABLE COMMANDS:\n/home     - Reveal Portfolio\n/book     - Initiate booking flow\n/projects - Browse top work\n/contact  - Get social links\n/clear    - Clear terminal shell" }]);
+      setHistory(prev => [...prev, { type: 'output', content: "AVAILABLE COMMANDS:\n/home     - Reveal Portfolio\n/book     - Initiate booking flow\n/game     - Play Job Catcher game\n/projects - Browse top work\n/contact  - Get social links\n/clear    - Clear terminal shell" }]);
     } else if (trimmed === '/home') {
       setHistory(prev => [...prev, { type: 'success', content: "SYSTEM AUTHENTICATED. ACCESSING..." }]);
       setTimeout(() => onHome?.(), 800);
     } else if (trimmed === '/clear') {
       setHistory([]);
+    } else if (trimmed === '/game') {
+      setHistory(prev => [...prev, { type: 'success', content: "🎮 LAUNCHING JOB CATCHER..." }]);
+      setTimeout(() => setShowGame(true), 500);
     } else if (trimmed === '/projects') {
       setHistory(prev => [...prev, { type: 'output', content: "OUR TOP WORK:\n1. HYPER-ORCHESTRATOR (ZO)\n2. BEUNEC CLOUD\n3. THINKER-CURATOR AI\nType numeric code to view (Coming Soon)" }]);
     } else if (trimmed === '/contact') {
@@ -67,9 +71,6 @@ export function CommandCenter({ onPlaySound, onHome, isEmbedded, onStopMusic }: 
     } else if (trimmed === '/book') {
       setBookingStep('name');
       setHistory(prev => [...prev, { type: 'output', content: "📅 BOOKING SYSTEM\n━━━━━━━━━━━━━━━━━━━━\nLet's schedule a call!\n\nWhat is your name?" }]);
-    } else if (trimmed === '/email') {
-      setHistory(prev => [...prev, { type: 'output', content: "COMPOSING EMAIL VIA GMAIL API...\n\nTo: praju9rt@gmail.com\nSubject: New Contact from Portfolio\n\nEnter your message:" }]);
-      setBookingStep('email');
     } else if (trimmed !== "") {
       setHistory(prev => [...prev, { type: 'error', content: `Unknown command: ${trimmed}. Type '/help' for options.` }]);
     }
@@ -103,7 +104,7 @@ export function CommandCenter({ onPlaySound, onHome, isEmbedded, onStopMusic }: 
         });
         
         if (response.ok) {
-          setHistory(prev => [...prev, { type: 'success', content: "✓ BOOKING EMAIL SENT!\n\nDetails sent to prajwal.srinivas238@gmail.com.\nHe will confirm shortly." }]);
+          setHistory(prev => [...prev, { type: 'success', content: "✓ BOOKING EMAIL SENT!\n\nDetails sent to prajwal.srinivas238@gmail.com.\nI will confirm shortly." }]);
         } else {
           setHistory(prev => [...prev, { type: 'error', content: "Failed to send email. Try /contact instead." }]);
         }
@@ -115,70 +116,74 @@ export function CommandCenter({ onPlaySound, onHome, isEmbedded, onStopMusic }: 
   };
 
   return (
-    <motion.div 
-      initial={isEmbedded ? { opacity: 0 } : { opacity: 0, y: 100 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ type: "spring", damping: 25, stiffness: 200 }}
-      className={isEmbedded ? "w-full h-full min-h-[300px]" : "fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-4xl z-50 p-4 md:p-8"}
-    >
-      <div className={`bg-black/80 backdrop-blur-xl border border-white/10 overflow-hidden shadow-2xl h-full flex flex-col ${isEmbedded ? 'rounded-xl' : 'rounded-t-xl'}`}>
-        <div className="flex items-center gap-2 px-4 py-2 bg-white/5 border-b border-white/5">
-          <Terminal className="w-3 h-3 text-zinc-500" />
-          <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">SYSTEM_CONSOLE</span>
-          <div className="ml-auto flex gap-1.5">
-            <div className="w-2 h-2 rounded-full bg-zinc-800" />
-            <div className="w-2 h-2 rounded-full bg-zinc-800" />
-          </div>
-        </div>
-
-        <div 
-          ref={scrollRef}
-          className={`${isEmbedded ? 'flex-1' : 'h-48 md:h-64'} overflow-y-auto p-4 font-mono text-[11px] md:text-xs space-y-1.5 scrollbar-hide`}
-        >
-          {history.map((item, i) => (
-            <div key={i} className={
-                item.type === 'error' ? 'text-red-500' : 
-                item.type === 'input' ? 'text-zinc-400' : 
-                item.type === 'success' ? 'text-emerald-500' :
-                'text-zinc-200'
-            }>
-              {item.type === 'input' && <span className="mr-2 text-zinc-600">❯</span>}
-              {item.content}
+    <>
+      {showGame && <JobCatcher onExit={() => setShowGame(false)} />}
+      
+      <motion.div 
+        initial={isEmbedded ? { opacity: 0 } : { opacity: 0, y: 100 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+        className={isEmbedded ? "w-full h-full min-h-[300px]" : "fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-4xl z-50 p-4 md:p-8"}
+      >
+        <div className={`bg-black/80 backdrop-blur-xl border border-white/10 overflow-hidden shadow-2xl h-full flex flex-col ${isEmbedded ? 'rounded-xl' : 'rounded-t-xl'}`}>
+          <div className="flex items-center gap-2 px-4 py-2 bg-white/5 border-b border-white/5">
+            <Terminal className="w-3 h-3 text-zinc-500" />
+            <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">SYSTEM_CONSOLE</span>
+            <div className="ml-auto flex gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-zinc-800" />
+              <div className="w-2 h-2 rounded-full bg-zinc-800" />
             </div>
-          ))}
-        </div>
+          </div>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (input.trim()) {
-              handleCommand(input);
-              setInput("");
-            }
-          }}
-          className="p-3 border-t border-white/5 flex items-center gap-2"
-        >
-          <span className="text-emerald-500 font-mono text-xs animate-pulse hidden sm:inline">❯</span>
-          <input
-            ref={inputRef}
-            autoFocus={!isEmbedded}
-            type="text"
-            value={input}
-            onChange={(e) => {
+          <div 
+            ref={scrollRef}
+            className={`${isEmbedded ? 'flex-1' : 'h-48 md:h-64'} overflow-y-auto p-4 font-mono text-[11px] md:text-xs space-y-1.5 scrollbar-hide`}
+          >
+            {history.map((item, i) => (
+              <div key={i} className={
+                  item.type === 'error' ? 'text-red-500' : 
+                  item.type === 'input' ? 'text-zinc-400' : 
+                  item.type === 'success' ? 'text-emerald-500' :
+                  'text-zinc-200'
+              }>
+                {item.type === 'input' && <span className="mr-2 text-zinc-600">❯</span>}
+                {item.content}
+              </div>
+            ))}
+          </div>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (input.trim()) {
+                handleCommand(input);
+                setInput("");
+              }
+            }}
+            className="p-3 border-t border-white/5 flex items-center gap-2"
+          >
+            <span className="text-emerald-500 font-mono text-xs animate-pulse hidden sm:inline">❯</span>
+            <input
+              ref={inputRef}
+              autoFocus={!isEmbedded}
+              type="text"
+              value={input}
+              onChange={(e) => {
                 setInput(e.target.value);
                 onPlaySound?.();
-            }}
-            placeholder="Type command..."
-            className="flex-1 bg-transparent border-none outline-none text-white font-mono text-xs placeholder:text-zinc-700"
-          />
-          <button
-            type="submit"
-            className="sm:hidden flex-shrink-0 px-3 py-1.5 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs font-medium hover:bg-emerald-500/30 transition-colors active:scale-95"
-          >
-            Send
-          </button>
-        </form>
-      </div>
-    </motion.div>
+              }}
+              placeholder="Type command..."
+              className="flex-1 bg-transparent border-none outline-none text-white font-mono text-xs placeholder:text-zinc-700"
+            />
+            <button
+              type="submit"
+              className="sm:hidden flex-shrink-0 px-3 py-1.5 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 text-xs font-medium hover:bg-emerald-500/30 transition-colors active:scale-95"
+            >
+              Send
+            </button>
+          </form>
+        </div>
+      </motion.div>
+    </>
   );
 }
